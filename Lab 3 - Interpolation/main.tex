@@ -4,7 +4,58 @@
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx} % Required for inserting images
 \usepackage{amsmath}
+\usepackage{nccmath}
 \usepackage{float}
+\usepackage{listings} % code highlighting
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{setspace}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false, 
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+\lstset{ % polish letters in code blocks
+  literate={ą}{{\k a}}1
+  		     {Ą}{{\k A}}1
+           {ż}{{\. z}}1
+           {Ż}{{\. Z}}1
+           {ź}{{\' z}}1
+           {Ź}{{\' Z}}1
+           {ć}{{\' c}}1
+           {Ć}{{\' C}}1
+           {ę}{{\k e}}1
+           {Ę}{{\k E}}1
+           {ó}{{\' o}}1
+           {Ó}{{\' O}}1
+           {ń}{{\' n}}1
+           {Ń}{{\' N}}1
+           {ś}{{\' s}}1
+           {Ś}{{\' S}}1
+           {ł}{{\l}}1
+           {Ł}{{\L}}1
+}
 
 \title{MOwNiT - Laboratorium 3: \\
 Interpolacja}
@@ -118,8 +169,149 @@ Dokonując odpowiednich przekształceń otrzymujemy:
 \section{Rozwiązania zadań domowych}
 
 \subsection{}
+Poniższy program napisany w języku Python generuje wykresy funkcji Rungego i jej wielomianu interpolacyjnego dla \(n = 4,\ 5,\ \ldots,\ 12\) równoodległych węzłów na przedziale \([-1, 1]\).
+\begin{lstlisting}[language=Python]
+import numpy as np
+from matplotlib import pyplot
+from scipy import interpolate
+
+
+def runge(t) -> float:
+    return 1 / (1 + 25 * t * t)
+
+
+x = np.linspace(-1, 1, 1000)
+
+
+def plot_for_n_knots(n: int):
+    x_knots = np.linspace(-1, 1, n)
+    y_knots = runge(x_knots)
+    y = interpolate.krogh_interpolate(x_knots, y_knots, x)
+
+    pyplot.title(f'Wykres dla {n} węzłów')
+    pyplot.plot(x_knots, y_knots, 'o', label='węzły')
+    pyplot.plot(x, y, label='interpolująca')
+    pyplot.plot(x, runge(x), label='interpolowana')
+    pyplot.legend()
+    pyplot.show()
+
+
+if __name__ == '__main__':
+    for n in range(4, 13):
+        plot_for_n_knots(n)
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{wykresy1.png}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{wykresy2.png}
+\end{figure}
+
+\newpage
+\noindent
+Początkowo można zauważyć wyraźnie mniejsze rozbieżności wykresów funkcji interpolującej od interpolowanej dla parzystej liczby węzłów, ale dla \(n \geq 12\) są one i tak bardzo duże.
+
+\vspace{3mm}
+\noindent
+\textbf{Wniosek:} Jako rozsądny kompromis przyjmuję \(n = 10\) węzłów.
+
+\subsection{}
+\begin{itemize}
+    \item Pierwsze 7 wielomianów Legendre'a:
+    
+    \setstretch{1.25}
+    \(P_0(x) = 1\)\\
+    \(P_1(x) = x\)\\
+    \(P_2(x) = \frac{1}{2}(3x^2 - 1)\)\\
+    \(P_3(x) = \frac{1}{2}(5x^3 - 3x)\)\\
+    \(P_4(x) = \frac{1}{8}(35x^4 - 30x^2 + 3)\)\\
+    \(P_5(x) = \frac{1}{8}(63x^5 - 70x^3 + 15x)\)\\
+    \(P_6(x) = \frac{1}{16}(231x^6 - 315x^4 + 105x^2 - 5)\)
+    
+    \setstretch{1}
+    Licząc dla każdej kombinacji różnych od siebie powyższych wielomianów całkę
+    \[\int_{-1}^1 P_i(x)P_j(x)\ dx\]
+    zawsze otrzymamy zero, co z definicji oznacza ich wzajemną ortogonalność.
+
+    Dla potwierdzenia obliczeń dokonywanych najpierw w silniku obliczeniowym \textit{Wolfram|Alpha}, posłużyłem się następującym programem w języku R:
+\begin{lstlisting}[language=R]
+p <- function(i, x) {
+  if (i == 0) return(1)
+  if (i == 1) return(x)
+  return(((2*i+1)/(i+1))*x*p(i-1,x) - (i/(i+1))*p(i-2, x))
+}
+
+pp <- function(i, j, x) {
+  return(p(i, x) * p(j, x))
+}
+
+for (i in 0:6) {
+  for (j in 0:6) {
+    if (i == j) next
+    ppv <- Vectorize(function(x) pp(i, j, x))
+    print(integrate(ppv, -1, 1))
+  }
+}
+\end{lstlisting}
+    Program ten wypisał dla wszystkich rozważanych kombinacji wynik kwadratur jako dokładnie 0 lub niemalże 0 (z uwagi na niedokładność obliczeń na liczbach zmiennoprzecinkowych i aproksymacyjną naturę kwadratur).
+
+    \newpage
+    \noindent
+    Obliczeń tych może być wyraźnie mniej przy zauważeniu, że każdy wielomian o nieparzystym numerze \((P_1, P_3, \ldots)\) jest nieparzysty, a każdy o parzystym - parzysty. Iloczyn funkcji nieparzystej z parzystą jest zawsze nieparzysty, a więc całkuje się do 0 na symetrycznym przedziale względem 0, tak jak w tym przypadku.
+
+    \item Wzór rekurencyjny wygląda następująco:
+    \[\left\{
+    \begin{array}{l}
+         P_{n+1}(x) = \frac{2n+1}{n+1}xP_n(x) - \frac{n}{n+1}P_{n-1}(x)\\
+         P_0(x) = 1\\
+         P_1(x) = x
+    \end{array}
+    \right.\]
+    Następujący program w języku Python oblicza kolejne wyrazy ciągu rekurencyjnego.
+\begin{lstlisting}[language=Python]
+from numpy.polynomial.polynomial import Polynomial
+
+
+p = [Polynomial([1]), Polynomial([0, 1])]
+x = Polynomial([0, 1])  # x jako wielomian 0 + 1*x
+
+for n in range(1, 6):
+    p.append((2*n + 1)/(n+1) * x * p[n] - n/(n+1) * p[n-1])
+    print(p[n+1])
+\end{lstlisting}
+    Program wypisał takie reprezentacje obliczonych wielomianów:
+\begin{verbatim}
+-0.5 + 0.0 x + 1.5 x**2
+0.0 - 1.5 x + 0.0 x**2 + 2.5 x**3
+0.375 + 0.0 x - 3.75 x**2 + 0.0 x**3 + 4.375 x**4
+0.0 + 1.875 x + 0.0 x**2 - 8.75 x**3 + 0.0 x**4 + 7.875 x**5
+-0.3125 + 0.0 x + 6.5625 x**2 + 0.0 x**3 - 19.6875 x**4
+                              + 0.0 x**5 + 14.4375 x**6
+\end{verbatim}
+    Odpowiadają one wielomianom podawanym w tablicach, więc zależność rekurencyjna jest spełniona.
+
+    \item Kombinacji liniowych wielomianów Legendre'a odpowiadających pierwszym jednomianom można łatwo szukać znając już rozwiązania dla niższych numerów wielomianów. Zaczynam więc od zanotowania \(1 = P_0\).\\
+    Idąc dalej:
+    \begin{align*}
+        &t = P_1\\
+        2P_2 = 3t^2 - 1 \Rightarrow\ &t^2 = \frac{1}{3}(2P_2 + P_0)\\
+        2P_3 = 5t^3 - 3t \Rightarrow\ &t^3 = \frac{1}{5}(2P_3 + 3P_1)\\
+        8P_4 = 35t^4 - 30t^2 + 3 \Rightarrow\ &t^4 = \frac{1}{35}(8P_4 + 20P_2 + 7P_0)\\
+        8P_5 = 63t^5 - 70t^3 + 15t \Rightarrow\ &t^5 = \frac{1}{63}(8P_5 + 28P_3 + 27P_1)\\
+        16P_6 = 231t^6 - 315t^4 + 105t^2 - 5 \Rightarrow\ &t^6 = \frac{1}{231}(16P_6 + 72P_4 + 110P_2 + 103P_0)
+    \end{align*}
+\end{itemize}
+
+\subsection{}
+Do zrobienia ostatnie zadanko.
 
 \section{Bibliografia}
-Wykład \textit{MOwNiT - Interpolacja} - Marian Bubak, Katarzyna Rycerz
+Wykład \textit{MOwNiT - Interpolacja} - Marian Bubak, Katarzyna Rycerz\\
+Wykład \textit{MOwNiT - Funkcje sklejane - spline functions} - Marian Bubak, Katarzyna Rycerz\\
+Dokumentacja \href{https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.krogh_interpolate.html#scipy.interpolate.krogh_interpolate}{\textit{SciPy Manual}}\\
+Dokumentacja \href{https://numpy.org/doc/stable/reference/generated/numpy.polynomial.polynomial.Polynomial.html#numpy.polynomial.polynomial.Polynomial}{\textit{NumPy}}
 
 \end{document}
