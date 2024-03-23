@@ -1,0 +1,125 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{float}
+
+\title{MOwNiT - Laboratorium 3: \\
+Interpolacja}
+\author{Wojciech Dąbek}
+\date{19 marca 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Treści zadań laboratoryjnych}
+
+\begin{enumerate}
+    \item Dane są trzy węzły interpolacji: \((-1,2.4),\ (1,1.8),\ (2,4.5)\). Proszę obliczyć wielomian interpolacyjny 2-go stopnia, wykorzystując:
+    \begin{itemize}
+        \item jednomiany
+        \item wielomiany Lagrange’a
+        \item wielomiany wg wzoru Newtona
+    \end{itemize}
+    Proszę pokazać, że trzy reprezentacje dają ten sam wielomian.
+    \item Wyrazić następujący wielomian metodą Hornera: \(p(t) = 3t^3 - 7t^2 + 5t - 4\)
+    \item Ile mnożeń trzeba wykonać do ewaluacji  wielomianu \(p(t)\) stopnia \(n-1\) w danym punkcie \textit{t} jeżeli wybieramy jako reprezentacje:
+    \begin{itemize}
+        \item jednomiany
+        \item wielomiany Lagrange’a
+        \item wielomiany Newtona
+    \end{itemize}
+\end{enumerate}
+
+\section{Treści zadań domowych}
+
+\begin{enumerate}
+    \item Znaleźć kompromis między granicą błędu a zachowaniem wielomianu interpolacyjnego dla funkcji Rungego \(f(t) = \frac{1}{1 + 25t^2}\), dla równoodległych węzłów na przedziale \([-1,1]\).
+    \item Proszę:
+    \begin{itemize}
+        \item sprawdzić, czy pierwsze siedem wielomianów Legendre’a są wzajemnie ortogonalne
+        \item sprawdzić, czy one spełniają wzór na rekurencję
+        \item wyrazić każdy z sześciu pierwszych jednomianów \(1,\ t,\ \ldots,\ t^6\)\\
+        jako liniową kombinację pierwszych siedmiu wielomianów Legendre’a \(p_0,\ \ldots,\ p_6\).
+    \end{itemize}
+    \item Dana jest funkcja określona w trzech punktach \(x_0,\ x_1,\ x_2\), rozmieszczonych w jednakowych odstępach \((x_1 = x_0 + h,\ x_2 = x_1 + h)\):
+      \[f(x_0) = y_0,\ f(x_1) = y_1,\ f(x_2) = y_2\]
+    Proszę wykonać interpolację danej funkcji sklejanymi funkcjami sześciennymi.
+\end{enumerate}
+
+\section{Rozwiązania zadań laboratoryjnych}
+
+\subsection{}
+\begin{itemize}
+    \item Wykorzystując jednomiany:\\
+    Współczynniki \(a_j\) postaci naturalnej szukanego wielomianu interpolacyjnego 2-go stopnia można wyznaczyć rozwiązując układ równań:
+    \[f(x_i) = \sum_{j=0}^2 a_j x_i^j \text{ dla } i = 0, 1, 2\]
+    Podstawiam zadane węzły interpolacji:
+    \[\left\{
+    \begin{array}{l}
+         a_0 - a_1 + a_2 = 2.4\\
+         a_0 + a_1 + a_2 = 1.8\\
+         a_0 + 2a_1 + 4a_2 = 4.5
+    \end{array}
+    \right.
+    \Rightarrow\ 
+    \left\{
+    \begin{array}{l}
+         a_0 = 1.1\\
+         a_1 = -0.3\\
+         a_2 = 1
+    \end{array}
+    \right.\]
+    Szukany wielomian ma zatem postać:
+    \[\boldsymbol{x^2 - 0.3x + 1.1}\]
+    \item Wykorzystując wielomiany Lagrange’a:
+    \begin{gather*}
+        P_2(x) = \sum_{k=0}^2 f(x_k) L_k(x) \quad \text{gdzie} \quad L_k(x) = \prod_{i = 0, i \neq k}^2 \frac{x - x_i}{x_k - x_i}\\
+        P_2(x) = y_0 \frac{(x-x_1)(x-x_2)}{(x_0-x_1)(x_0-x_2)} + y_1 \frac{(x-x_0)(x-x_2)}{(x_1-x_0)(x_1-x_2)} + y_2 \frac{(x-x_0)(x-x_1)}{(x_2-x_0)(x_2-x_1)}
+    \end{gather*}
+    Podstawiam zadane węzły interpolacji:
+    \begin{align*}
+        P_2(x) &= 2.4 \frac{(x-1)(x-2)}{(-1-1)(-1-2)} + 1.8 \frac{(x-(-1))(x-2)}{(1-(-1))(1-2)} + 4.5 \frac{(x-(-1))(x-1)}{(2-(-1))(2-1)} =\\
+        &= 0.4(x-1)(x-2) -0.9(x+1)(x-2) + 1.5(x+1)(x-1) =\\
+        &= \boldsymbol{x^2 - 0.3x + 1.1}
+    \end{align*}
+    \item Wykorzystując wielomiany Newtona:
+    \[P_2(x) = f[x_0] + f[x_0, x_1](x-x_0) + f[x_0,x_1,x_2](x-x_0)(x-x_1)\]
+    Podstawiam do obliczeń zadane węzły interpolacji:
+    \begin{gather*}
+        f[x_0] = f(x_0) = 2.4\\
+        f[x_0, x_1] = \frac{f[x_1] - f[x_0]}{x_1 - x_0} = \frac{1.8 - 2.4}{1 + 1} = -0.3\\
+        f[x_1, x_2] = \frac{f[x_2] - f[x_1]}{x_2 - x_1} = \frac{4.5 - 1.8}{2 - 1} = 2.7\\
+        f[x_0, x_1, x_2] = \frac{f[x_1, x_2] - f[x_0, x_1]}{x_2 - x_0} = \frac{2.7 + 0.3}{2 + 1} = 1
+    \end{gather*}
+    Stąd mamy:
+    \begin{align*}
+        P_2(x) &= 2.4 - 0.3(x+1) + (x+1)(x-1) =\\
+        &= \boldsymbol{x^2 - 0.3x + 1.1}
+    \end{align*}
+\end{itemize}
+\textbf{Wniosek:} Wszystkie trzy metody dają ostatecznie ten sam wielomian interpolacyjny.
+
+\subsection{}
+Dokonując odpowiednich przekształceń otrzymujemy:
+\[p(t) = 3t^3 - 7t^2 + 5t - 4 = t(3t^2 - 7t + 5) - 4 = t(t(3t - 7) + 5) - 4 = t(t(t\ \cdot\ 3 - 7) + 5) - 4\]
+
+\subsection{}
+\begin{itemize}
+    \item Wybierając jednomiany, możemy zastosować algorytm Hornera dla postaci naturalnej. Przy jego użyciu do ewaluacji wielomianu stopnia \(n-1\) wykonywanych jest \(n-1\) mnożeń.
+    \item Wybierając wielomiany Lagrange’a, przy każdej ewaluacji wartości w konkretnym punkcie musimy powtórzyć obliczanie licznika dla każego \(L_k(x)\), co daje \(n-1\) mnożeń do wykonania \textit{n} razy. Oprócz tego, każdą obliczoną bazę Lagrange’a mnożymy jeszcze przez odpowiedni współczynnik (rzędną węzła), co daje kolejne \textit{n} mnożeń. Stąd przy takiej ewaluacji wykonywanych jest ich \(n(n-1) + n = n^2\).
+    \item Wybierając wielomiany Newtona, obliczamy \(n-1\) kolejnych wartości \(p_k(x),\)
+    \(k \in [1, n-1]\), które wymagają wykonania \(k-1\) mnożeń. Każdy z nich mnożymy jeszcze przez odpowiedni współczynnik \(b_k\). Stąd mamy w sumie \(\sum_{k=1}^{n-1} (k-1)+1 = \sum_{k=1}^{n-1} k = \frac{1}{2}(n-1)n\) mnożeń.
+\end{itemize}
+
+\section{Rozwiązania zadań domowych}
+
+\subsection{}
+
+\section{Bibliografia}
+Wykład \textit{MOwNiT - Interpolacja} - Marian Bubak, Katarzyna Rycerz
+
+\end{document}
