@@ -306,7 +306,60 @@ for n in range(1, 6):
 \end{itemize}
 
 \subsection{}
-Do zrobienia ostatnie zadanko.
+Konstruuję funkcję
+\[s(x) =
+\begin{cases}
+    s_0(x) & x \in [x_0,\ x_1]\\
+    s_1(x) & x \in [x_1,\ x_2]
+\end{cases}
+\]
+spełniającą warunki interpolacji funkcji \textit{f} dla zadanych węzłów, w której funkcje \(s_0\) i \(s_1\) są sześcienne. Wiadomo stąd, że ich drugie pochodne \(s_i''\) są liniowe na swoich przedziałach. Łącząc to z warunkiem interpolacji sześciennej\\
+\(s_i''(x_{i+1}) = s_{i+1}''(x_{i+1})\), dla \(i \in \{0, 1\}\) otrzymuję wzór:
+\[s_i''(x) = s_i''(x_i) \frac{x_{i+1} - x}{h} + s_i''(x_{i+1}) \frac{x - x_i}{h}\]
+Całkując dwukrotnie otrzymuję:
+\[s_i(x) = \frac{s_i''(x_i)}{6h}(x_{i+1} - x)^3 + \frac{s_i''(x_{i+1})}{6h}(x - x_i)^3 + C(x - x_i) + D(x_{i+1} - x)\]
+gdzie \(C \text{ i } D\) to stałe całkowania, które mogę wyliczyć korzystając z warunków interpolacji \(s_i(x_i) = y_i\) oraz \(s_i(x_{i+1}) = y_{i+1}\). Dzięki temu mamy:
+\begin{align*}
+    s_i(x) &= \frac{s_i''(x_i)}{6h}(x_{i+1} - x)^3 + \frac{s_i''(x_{i+1})}{6h}(x - x_i)^3 +\\
+    &+ \left(\frac{y_{i+1}}{h} - \frac{s_i''(x_{i+1})h}{6}\right)(x - x_i) + \left(\frac{y_i}{h} - \frac{s_i''(x_i)h}{6}\right)(x_{i+1} - x)
+\end{align*}
+Do wyliczenia \(s_i''(x)\) skorzystam z warunku ciągłości pierwszej pochodnej.\\
+Różniczkując powyższą funkcję na przedziale otrzymuję:
+\[s_i'(x_i) = -\frac{h}{3}s_i''(x_i) - \frac{h}{6}s_i''(x_{i+1}) + \frac{y_{i+1} - y_i}{h}\]
+Dla przejrzystości wprowadzam symbole:
+\begin{align*}
+    \sigma_i &= \frac{1}{6}s''(x_i) \left(= \frac{1}{6}s_0''(x_i) = \frac{1}{6}s_1''(x_i)\right)\\
+    \Delta_i &= \frac{y_{i+1} - y_i}{h}
+\end{align*}
+Wtedy:
+\begin{align*}
+    s_1'(x_1) &= \Delta_1 - h(\sigma_2 + 2\sigma_1)\\
+    s_0'(x_1) &= \Delta_0 + h(2\sigma_1 + \sigma_0) \text{ (wyznaczane analogicznie dla } s_{i-1})
+\end{align*}
+muszą być sobie równe:
+\begin{gather*}
+    \Delta_1 - h(\sigma_2 + 2\sigma_1) = \Delta_0 + h(2\sigma_1 + \sigma_0)\\
+    h(\sigma_0 + 4\sigma_1 + \sigma_2) = \Delta_1 - \Delta_0
+\end{gather*}
+Mamy w jednym równaniu trzy niewiadome, więc koniecznie jest określenie warunków brzegowych, dlatego przyjmuję \(s''(x_0) = s''(x_2) = 0\ (= \sigma_0 = \sigma_2)\) (\textit{natural cubic spline}). Pozostaje wtedy:
+\begin{gather*}
+    4h\sigma_1 = \Delta_1 - \Delta_0\\
+    4h\sigma_1 = \frac{y_0 - 2y_1 + y_2}{h}\\
+    \sigma_1 = \frac{y_0 - 2y_1 + y_2}{4h^2}
+\end{gather*}
+Ostateczną postać funkcji interpolującej \textit{s} otrzymamy podstawiając współrzędne węzłów interpolacji oraz wartości \(\sigma_i\) do wzoru:
+\[s(x) = 
+\begin{cases}
+    y_0 + b_0(x - x_0) + c_0(x - x_0)^2 + d_0(x - x_0)^3, & x \in [x_0,\ x_1]\\
+    y_1 + b_1(x - x_1) + c_1(x - x_1)^2 + d_1(x - x_1)^3, & x \in [x_1,\ x_2]
+\end{cases}
+\]
+gdzie
+\begin{align*}
+    b_i &= \frac{y_{i+1} - y_i}{h} - h(\sigma_{i+1} + 2\sigma_i)\\
+    c_i &= 3\sigma_i\\
+    d_i &= \frac{\sigma_{i+1} - \sigma_i}{h}
+\end{align*}
 
 \section{Bibliografia}
 Wykład \textit{MOwNiT - Interpolacja} - Marian Bubak, Katarzyna Rycerz\\
