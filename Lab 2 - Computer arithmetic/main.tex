@@ -1,0 +1,192 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{listings} % code highlighting
+\DeclareMathOperator{\fl}{fl}
+
+\usepackage{xcolor}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false, 
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\title{MOwNiT - Laboratorium 2: \\
+Arytmetyka komputerowa (cd.)}
+\author{Wojciech Dąbek}
+\date{12 marca 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Treści zadań}
+
+\begin{enumerate}
+    \item Napisać algorytm do obliczenia funkcji wykładniczej \(e^x\) przy pomocy nieskończonych szeregów
+    \[e^x = 1+x + \frac{x^2}{2!} + \frac{x^3}{3!} + \ldots\]
+    \begin{itemize}
+        \item Wykonując sumowanie w naturalnej kolejności, jakie kryterium zakończenia obliczeń przyjmiesz?
+        \item Proszę przetestować algorytm dla \(x \in \{\pm1,\ \pm5,\ \pm10\}\) i porównać wyniki z wynikami wykonania standardowej funkcji \(\exp x\).
+        \item Czy można posłużyć się szeregami w tej postaci do uzyskania dokładnych wyników dla \(x < 0\)?
+        \item Czy możesz zmienić wygląd szeregu lub w jakiś sposób przegrupować składowe żeby uzyskać dokładniejsze wyniki dla \(x < 0\)?
+    \end{itemize}
+    \item Które z dwóch matematycznie ekwiwalentnych wyrażeń \(x^2 - y^2\) oraz\\
+    \((x - y)\cdot(x + y)\) może być obliczone dokładniej w arytmetyce zmienno-przecinkowej? Dlaczego?
+    \item Dla jakich wartości \textit{x} i \textit{y} względem siebie istnieje wyraźna różnica w dokładności dwóch wyrażeń?\\
+    Zakładamy że rozwiązujemy równanie kwadratowe \(ax^2 + bx + c = 0\), z \(a = 1.22,\ b = 3.34\) i \(c = 2.28\), wykorzystując znormalizowany system zmiennoprzecinkowy z podstawą \(\beta = 10\) i dokładnością \(p = 3\).
+    \begin{itemize}
+        \item Ile wyniesie obliczona wartość \(b^2 - 4ac\)?
+        \item Jaka jest dokładna wartość wyróżnika w rzeczywistej (dokładnej) arytmetyce?
+        \item Jaki jest względny błąd w obliczonej wartości wyróżnika?
+    \end{itemize}
+\end{enumerate}
+
+\section{Rozwiązania}
+
+\subsection{}
+Algortym ten napisałem jako funkcję w języku Python:
+\begin{lstlisting}[language=Python]
+import math
+
+def my_exp(x: int or float) -> float:
+    sum1 = 1.0
+    sum2 = 1.0 + x
+    denominator = 1
+    while sum1 != sum2:
+        sum1 = sum2
+        denominator += 1
+        sum2 += x ** denominator / math.factorial(denominator)
+    return sum2
+\end{lstlisting}
+
+\begin{itemize}
+    \item Jako kryterium zakończenia obliczeń (przerwania pętli) przyjmuję sytuację, w której dodawana do dotychczasowej sumy składowa szeregu jest już tak mała, że dodanie jej nie zmienia reprezentacji tej sumy. Mogę tak przyjąć, ponieważ ciąg, z którego utworzony jest ten zbieżny szereg, dąży do 0.
+    \item Wyniki testów porównujących z analogiczną biblioteczną funkcją są następujące:
+    \begin{verbatim}
+      my_exp(-10) = 4.5399929433607724e-05
+    math.exp(-10) = 4.5399929762484854e-05
+    absolute error = 3.2887713006472113e-13
+    relative error = 7.2440008560647795e-09 (!)
+    
+      my_exp(-5) = 0.006737946999086907
+    math.exp(-5) = 0.006737946999085467
+    absolute error = 1.4398204850607499e-15
+    relative error = 2.136883067284701e-13 (!)
+    
+      my_exp(-1) = 0.36787944117144245
+    math.exp(-1) = 0.36787944117144233
+    absolute error = 1.1102230246251565e-16
+    relative error = 3.017899073375402e-16
+    
+      my_exp(1) = 2.7182818284590455
+    math.exp(1) = 2.718281828459045
+    absolute error = 4.440892098500626e-16
+    relative error = 1.6337129034990842e-16
+    
+      my_exp(5) = 148.41315910257657
+    math.exp(5) = 148.4131591025766
+    absolute error = 2.842170943040401e-14
+    relative error = 1.915039717654698e-16
+    
+      my_exp(10) = 22026.46579480671
+    math.exp(10) = 22026.465794806718
+    absolute error = 7.275957614183426e-12
+    relative error = 3.3032796463874436e-16
+    \end{verbatim}
+    \item Jak widać, błąd względny szybko zwiększa się im bardziej oddalony od zera jest ujemny argument, czego nie obserwujemy w przypadku liczb dodatnich. Wynika to z efektu \textit{"catastrophic cancellation"}, który występuje dla ujemnych argumentów przez naprzemienne dodawanie i odejmowanie liczb przybliżonych przez system zmiennoprzecinkowy. Każde odejmowanie takich wartości przybliżonych obarczone jest powstawaniem dużo gorszego błędu jego wyniku (w porównaniu do błędów liczb wejściowych).\\
+    Można jednak posłużyć się szeregiem tej postaci zauważając, że
+    \[e^{-x} = \frac{1}{e^x}\]
+    Dodając na początek funkcji warunek
+    \begin{lstlisting}[language=Python]
+    if x < 0:
+        return 1.0 / my_exp(-x)\end{lstlisting}
+    zapewniamy, że w algorytmie nigdzie nie dojdzie do odejmowania, co pozwoli uniknąć wspomnianego efektu i uzyskać dokładniejsze wyniki również dla liczb ujemnych:
+    \begin{verbatim}
+      my_exp(-10) = 4.539992976248486e-05
+    math.exp(-10) = 4.5399929762484854e-05
+    absolute error = 6.776263578034403e-21
+    relative error = 1.4925713791816933e-16 (!)
+    
+      my_exp(-5) = 0.006737946999085469
+    math.exp(-5) = 0.006737946999085467
+    absolute error = 1.734723475976807e-18
+    relative error = 2.574557912391206e-16
+    
+      my_exp(-1) = 0.3678794411714423
+    math.exp(-1) = 0.36787944117144233
+    absolute error = 5.551115123125783e-17
+    relative error = 1.508949536687701e-16
+    
+      my_exp(1) = 2.7182818284590455
+    math.exp(1) = 2.718281828459045
+    absolute error = 4.440892098500626e-16
+    relative error = 1.6337129034990842e-16
+    
+      my_exp(5) = 148.41315910257657
+    math.exp(5) = 148.4131591025766
+    absolute error = 2.842170943040401e-14
+    relative error = 1.915039717654698e-16
+    
+      my_exp(10) = 22026.46579480671
+    math.exp(10) = 22026.465794806718
+    absolute error = 7.275957614183426e-12
+    relative error = 3.3032796463874436e-16
+    \end{verbatim}
+\end{itemize}
+\textbf{Wniosek:} Projektując algorytmy wymagające wysokiej precyzji obliczeniowej należy zwracać uwagę na występujące operacje odejmowania bliskich sobie liczb i w miarę możliwości ich unikać.
+
+\subsection{}
+Liczba zmiennoprzecinkowa o \textit{p}-cyfrowej mantysie podniesiona do kwadratu zawiera aż do \(2p\) cyfr, przez co może być zbyt duża, aby móc reprezentować jej wartość w tym systemie, co jest szczególnie niebezpieczne dla obliczeń. Dużo mniej ryzykowne jest pod tym względem mnożenie sumy z różnicą danych liczb niż podnoszenie którejś do kwadratu.\\
+Co więcej, podniesienie liczb do kwadratu zwiększa dystans między nimi, przez co ich suma lub, jak tutaj, różnica, jest bardziej narażona na utratę cyfr znaczących (a przez to większy błąd) przy przesuwaniu mantysy w celu dopasowania wykładników na potrzeby takiej operacji. Dodawanie i odejmowanie liczb niepodniesionych do kwadratu jest z tego powodu mniej narażone na takie błędy.
+
+\vspace{3mm}
+\noindent
+\textbf{Wniosek:} Wyrażenie \((x - y)\cdot(x + y)\) może być obliczone dokładniej w artymetyce zmiennoprzecinkowej niż matematycznie ekwiwalentne \(x^2 - y^2\).
+
+\subsection{}
+\begin{itemize}
+    \item Ile wyniesie obliczona wartość \(b^2 - 4ac\)?
+    \begin{gather*}
+        \fl(b^2) = \fl(3.34^2) = \fl(11.1556) = 11.2\\
+        \fl(4ac) = \fl(\fl(4a)c) = \fl(\fl(4 \cdot 1.22) \cdot 2.28) =\\
+        = \fl(\fl(4,88) \cdot 2.28) = \fl(4.88 \cdot 2.28) = \fl(11.1264) = 11.1\\
+        \fl(b^2 - 4ac) = \fl(11.2 - 11.1) = \textbf{0.1} = \Tilde{\Delta}
+    \end{gather*}
+    \item Jaka jest dokładna wartość wyróżnika w rzeczywistej (dokładnej) arytmetyce?
+    \[\Delta = b^2 - 4ac = 11.1556 - 11.1264 = \textbf{0.0292}\]
+    \item Jaki jest względny błąd w obliczonej wartości wyróżnika?
+    \[\frac{\left|\Tilde{\Delta} - \Delta\right|}{\Delta} = \frac{|0.1 - 0.0292|}{0.0292} = \frac{0.0708}{0.0292} \approx \textbf{2.42466 (!)}\]
+\end{itemize}
+\textbf{Wniosek:} Wielokrotność zaokrągleń w obliczeniach spowodowanych niską precyzją systemu zmiennoprzecinkowego może powodować bardzo duże błędy w otrzymywanych wynikach.
+
+\section{Bibliografia}
+https://en.wikipedia.org/wiki/Catastrophic\_cancellation\\
+Wykład prof. Heatha \textit{Scientific Computing}
+
+\end{document}
