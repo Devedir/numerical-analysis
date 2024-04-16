@@ -191,9 +191,63 @@ n = 5: S = 0.6931502307, Error = 0.0000030501
 \noindent
 \textbf{Wnioski:} W każdym przypadku zwiększenie liczby podprzedziałów daje wyraźnie dokładniejsze wyniki. Metody prostokątów i trapezów skutkują podobną dokładnością. Niezwykle pozytywnie wyróżnia się tu wzór Simpsona.
 
-\newpage
-
 \subsection{}
+Dla porównania policzę najpierw dokładną wartość całki:
+\[\int_{-1}^1 \frac{1}{1 + x^2}dx = \frac{\pi}{2} \approx 1.5707963\]
+
+\noindent
+Mam do czynienia z przedziałem skończonym \([-1, 1]\), więc posłużę się następującym ciągiem ortogonalnych wielomianów Legendre'a:
+\[P_n(x) = \frac{1}{2^n \cdot n!} \frac{d^n}{dx^n}(x^2 - 1)^n\]
+Do zastosowania tego typu kwadratury Gaussa-Legendre'a przyjmuję \(p(x) = 1\).\\
+Kwadratur wysokiego rzędu używa się rzadko, więc stablicowane są tylko wartości węzłów i wag dla niskich rzędów. Do uzyskania takiej tablicy wartości dla \(n=8\) posłużyłem się \href{https://www.efunda.com/math/num_integration/findgausslegendre.cfm}{kalkulatorem portalu \textit{efunda}} otrzymując:
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c|c}
+        \textit{k} & węzły \(x_k\) & wagi \(w_k\)\\
+        \hline
+        1 & -0.96029 & 0.101229\\
+        2 & -0.796667 & 0.222381\\
+        3 & -0.525532 & 0.313707\\
+        4 & -0.183435 & 0.362684\\
+        5 & 0.183435 & 0.362684\\
+        6 & 0.525532 & 0.313707\\
+        7 & 0.796667 & 0.222381\\
+        8 & 0.96029 & 0.101229
+    \end{tabular}
+    \label{tab:table1}
+\end{table}
+
+\noindent
+Pozostaje wstawić te wartości do wzoru:
+\begin{align*}
+    \int_{-1}^1 \frac{1}{1 + x^2}dx \approx\ S = \sum_{k=1}^8 w_k \frac{1}{1 + x_k^2} &= 1.5707957502350354\\
+    \Delta S = \left|\frac{\pi}{2} - S\right| &\approx 5.765598611873202 \cdot 10^{-7}
+\end{align*}
+Co obliczyłem poniższym programem napisanym w języku Python.
+
+\begin{lstlisting}[language=Python]
+from math import pi
+
+def f(x: float) -> float:
+    return 1 / (1 + x*x)
+
+weights = [
+    (-0.96029, 0.101229), (-0.796667, 0.222381),
+    (-0.525532, 0.313707), (-0.183435, 0.362684),
+    (0.183435, 0.362684), (0.525532, 0.313707),
+    (0.796667, 0.222381), (0.96029, 0.101229)
+]
+
+sum = 0.0
+for x, w in weights:
+    sum += w * f(x)
+
+print(f'Quadrature result: {sum}\tError: {abs(pi/2 - sum)}')
+\end{lstlisting}
+
+\noindent
+\textbf{Wnioski:} Ta metoda pozwala uzyskać bardzo dokładne wyniki niskim kosztem obliczeniowym w bardzo prosty sposób. Dla wyższych rzędów trudnością może być znalezienie węzłów i wag, więc w praktyce często warto zastosować złożenie obliczeń dla niższych rzędów.
 
 \newpage
 
@@ -293,6 +347,7 @@ S = 0.7854335733, Error = 0.0922863927
 \subsection{}
 
 \section{Bibliografia}
-Materiały ze strony - Włodzimierz Funika
+Materiały ze strony - Włodzimierz Funika\\
+https://www.efunda.com/math/num\_integration/findgausslegendre.cfm
 
 \end{document}
