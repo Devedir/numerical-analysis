@@ -224,26 +224,27 @@ Pozostaje wstawić te wartości do wzoru:
     \int_{-1}^1 \frac{1}{1 + x^2}dx \approx\ S = \sum_{k=1}^8 w_k \frac{1}{1 + x_k^2} &= 1.5707957502350354\\
     \Delta S = \left|\frac{\pi}{2} - S\right| &\approx 5.765598611873202 \cdot 10^{-7}
 \end{align*}
-Co obliczyłem poniższym programem napisanym w języku Python.
+Co obliczyłem poniższym programem napisanym w języku Erlang.
 
-\begin{lstlisting}[language=Python]
-from math import pi
+\begin{lstlisting}[language=Erlang]
+-module(gauss).
+-export([result/0]).
 
-def f(x: float) -> float:
-    return 1 / (1 + x*x)
+fun1(X) -> 1 / (1 + X*X).
 
-weights = [
-    (-0.96029, 0.101229), (-0.796667, 0.222381),
-    (-0.525532, 0.313707), (-0.183435, 0.362684),
-    (0.183435, 0.362684), (0.525532, 0.313707),
-    (0.796667, 0.222381), (0.96029, 0.101229)
-]
+nodes_and_weights(8) -> [
+  {-0.96029, 0.101229}, {-0.796667, 0.222381},
+  {-0.525532, 0.313707}, {-0.183435, 0.362684},
+  {0.183435, 0.362684}, {0.525532, 0.313707},
+  {0.796667, 0.222381}, {0.96029, 0.101229}
+].
 
-sum = 0.0
-for x, w in weights:
-    sum += w * f(x)
-
-print(f'Quadrature result: {sum}\tError: {abs(pi/2 - sum)}')
+result() ->
+  Summer = fun ({Node, Weight}, Acc) ->
+                Acc + Weight * fun1(Node) end,
+  S = lists:foldl(Summer, 0, nodes_and_weights(8)),
+  io:format("Quadrature result: ~w   Error: ~w~n",
+            [S, abs(math:pi()/2 - S)]).
 \end{lstlisting}
 
 \noindent
@@ -345,9 +346,65 @@ S = 0.7854335733, Error = 0.0922863927
 \textbf{Wnioski:} Dla mało skomplikowanych funkcji jak ta, mało skomplikowane metody jak wzór prostokątów przy odpowiedniej ilości podziałów mogą być wystarczające do uzyskania wyników podobnie zadawalających jak metody adaptacyjnej (która dokładniejszy wynik daje dopiero przy wyraźnie niskiej tolerancji na błędy). 
 
 \subsection{}
+Policzę najpierw dokładną wartość zadanej całki:
+\[\int_0^1 \frac{1}{x+3} dx = \log \frac{4}{3} \approx 0.28768207\]
+
+\noindent
+Aby móc zastosować wielomiany Legendre'a muszę najpierw przekształcić całkę na przedział \([-1, 1]\):
+\[\int_0^1 \frac{1}{x+3} dx = \frac{1 - 0}{2} \int_{-1}^1 \frac{1}{\left(\frac{1 - 0}{2}x + \frac{1 + 0}{2}\right) + 3} dx = \int_{-1}^1 \frac{1}{x + 7} dx\]
+
+\newpage
+
+\noindent
+Tabela przybliżonych wartości węzłów i wag dla \(n = 4\) kwadratury Gaussa-Legendre'a wygląda następująco:
+
+\begin{table}[h]
+    \centering
+    \begin{tabular}{c|c|c}
+        \textit{k} & węzły \(x_k\) & wagi \(w_k\)\\
+        \hline
+        1 & -0.861136 & 0.347855\\
+        2 & -0.339981 & 0.652145\\
+        3 & 0.339981 & 0.652145\\
+        4 & 0.861136 & 0.347855
+    \end{tabular}
+    \label{tab:table2}
+\end{table}
+
+\noindent
+Wstawiam do wzoru kwadratury i obliczam:
+\begin{align*}
+    \int_{-1}^1 \frac{1}{x + 7} dx \approx S = \sum_{k=1}^4 w_k \frac{1}{x_k + 7} &= 0.2876820714904883\\
+    \Delta S = \left| \log \frac{4}{3} - S \right| &\approx 9.612925455648735 \cdot 10^{-10}
+\end{align*}
+
+\noindent
+Do czego posłużyłem się podobnie jak wyżej programem w Erlangu.
+
+\begin{lstlisting}[language=Erlang]
+-module(gauss).
+-export([result/0]).
+
+fun2(X) -> 1 / (7 + X).
+
+nodes_and_weights(4) -> [
+  {-0.861136, 0.347855},
+  {-0.339981, 0.652145},
+  {0.339981, 0.652145},
+  {0.861136, 0.347855}
+].
+
+result() ->
+  Summer = fun ({Node, Weight}, Acc) ->
+                Acc + Weight * fun2(Node) end,
+  S = lists:foldl(Summer, 0, nodes_and_weights(4)),
+  io:format("Quadrature result: ~w   Error: ~w~n",
+            [S, abs(math:log(4/3) - S)]).
+\end{lstlisting}
 
 \section{Bibliografia}
 Materiały ze strony - Włodzimierz Funika\\
-https://www.efunda.com/math/num\_integration/findgausslegendre.cfm
+https://www.efunda.com/math/num\_integration/findgausslegendre.cfm\\
+https://en.wikipedia.org/wiki/Gaussian\_quadrature
 
 \end{document}
