@@ -1,0 +1,104 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{minted} % code highlighting that supports Rust
+
+\title{MOwNiT - Laboratorium 6:\\
+Całkowanie numeryczne (cd.)}
+\author{Wojciech Dąbek}
+\date{16 kwietnia 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Treść zadania}
+
+Obliczyć przybliżoną wartość całki
+\[\int_{-\infty}^\infty e^{-x^2} \cos x\ dx\]
+
+\begin{itemize}
+    \item przy pomocy złożonych kwadratur (prostokątów, trapezów, Simpsona),
+    \item przy pomocy całkowania adaptacyjnego,
+    \item przy pomocy kwadratury Gaussa-Hermite’a, obliczając wartości węzłów i wag.
+\end{itemize}
+
+\noindent
+Porównać wydajność dla zadanej dokładności.
+
+\section{Rozwiązanie}
+
+Dokładna wartość całki wynosi
+\[\int_{-\infty}^\infty e^{-x^2} \cos x\ dx = \frac{\sqrt{\pi}}{\sqrt[4]{e}} \approx 1.380388\]
+
+\noindent
+Ponieważ funkcja podcałkowa jest iloczynem funkcji parzystych, ona sama jest parzysta. W związku z tym zachodzi własność:
+\[\int_{-\infty}^\infty e^{-x^2} \cos x\ dx = 2 \int_0^\infty e^{-x^2} \cos x\ dx\]
+\noindent
+z której skorzystam dla pewnego uproszczenia algorytmów.
+
+\vspace{5mm}
+\noindent
+Na potrzeby implementacyjne przyjmuję dokładność obliczeń jako 0.0001.
+
+\subsection{}
+Stosując złożone kwadratury dla zadanej odległości między węzłami \textit{h}, będę przybliżać całkę następującymi sumami:
+
+\begin{itemize}
+    \item dla metody prostokątów:
+    \[S = h \left[ f\left(\frac{h}{2}\right) + f\left(\frac{3h}{2}\right) + f\left(\frac{5h}{2}\right) + \ldots + f(x_n) \right]\]
+    \item dla metody trapezów:
+    \[S = \frac{h}{2} [ f(0) + 2f(h) + 2f(2h) + \ldots + 2f(x_{n-1}) + f(x_n) ]\]
+    \item dla wzoru Simpsona:
+    \[S = \frac{h}{3} [ f(0) + 4f(h) + 2f(2h) + \ldots + 2f(x_{n-2}) + 4f(x_{n-1}) + f(x_n) ]\]
+\end{itemize}
+
+\noindent
+Sumowanie w algorytmach kończę, gdy dzięki obliczonej dotychczas sumie otrzymujemy wyniki przybliżenia całki dostatecznie dokładny według zadanej dokładności.
+
+\vspace{5mm}
+\noindent
+Wspomniane algorytmy zrealizowałem następująco w języku Rust:
+\begin{minted}[linenos, numbersep=5pt]{Rust}
+fn main() {
+    println!("Hello world!");
+}
+\end{minted}
+
+\noindent
+Otrzymuję następujące wyniki:
+\begin{verbatim}
+S = 000,  Error = 000
+\end{verbatim}
+
+\subsection{}
+Całkowanie adaptacyjne zrealizowałem następującym programem w języku Rust przyjmując poziom tolerancji \(t = X\) aby uzyskać zadaną dokładność:
+\begin{minted}[linenos, numbersep=5pt]{Rust}
+fn main() {
+    println!("Hello world!");
+}
+\end{minted}
+
+\noindent
+Otrzymuję następujące wyniki:
+\begin{verbatim}
+S = 000,  Error = 000
+\end{verbatim}
+
+\subsection{}
+Kwadratura Gaussa-Hermite'a przybliża całkę w następujący sposób:
+\[\int_{-\infty}^\infty e^{-x^2} \cos x\ dx \approx \sum_{i=1}^n w_i f(x_i)\]
+
+\noindent
+Aby uzyskać zadaną dokładność przyjmuję \(n = X\).
+
+\section{Wnioski}
+
+\section{Bibliografia}
+Materiały ze strony - Włodzimierz Funika\\
+https://en.wikipedia.org/wiki/Gauss-Hermite\_quadrature
+
+\end{document}
