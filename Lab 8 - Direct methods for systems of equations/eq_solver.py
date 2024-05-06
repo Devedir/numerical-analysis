@@ -37,13 +37,26 @@ def main(n: int) -> (int, int, int):
 
     # inversion
     inv_time = time.time()
-    # some stuff
+
+    A_inv = np.linalg.inv(A)
+
+    if not np.allclose(A.dot(A_inv), np.eye(n)) or not np.allclose(A_inv.dot(A), np.eye(n)):
+        raise AssertionError("Matrix not invertible")
+
+    x = np.dot(A_inv, B)
+
     inv_time = time.time() - inv_time
+
+    if not np.allclose(x, expected):
+        raise AssertionError("Inversion got it wrong!")
 
     # QR decomposition
     qr_time = time.time()
-    # some stuff
+
     qr_time = time.time() - qr_time
+
+    if not np.allclose(x, expected):
+        raise AssertionError("QR decomposition got it wrong!")
 
     return lu_time, inv_time, qr_time
 
