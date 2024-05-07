@@ -40,7 +40,7 @@ def main(n: int) -> (int, int, int):
 
     A_inv = np.linalg.inv(A)
 
-    if not np.allclose(A.dot(A_inv), np.eye(n)) or not np.allclose(A_inv.dot(A), np.eye(n)):
+    if not np.allclose(A.dot(A_inv), np.eye(n)) or not np.allclose(A_inv @ A, np.eye(n)):
         raise AssertionError("Matrix not invertible")
 
     x = np.dot(A_inv, B)
@@ -53,6 +53,9 @@ def main(n: int) -> (int, int, int):
     # QR decomposition
     qr_time = time.time()
 
+    Q, R = np.linalg.qr(A)
+    x = np.linalg.solve(R, Q.T @ B)
+
     qr_time = time.time() - qr_time
 
     if not np.allclose(x, expected):
@@ -62,8 +65,8 @@ def main(n: int) -> (int, int, int):
 
 
 if __name__ == '__main__':
-    # TODO: argument user input
-    LU_time, inversion_time, QR_time = main(4)
+    N = int(input())
+    LU_time, inversion_time, QR_time = main(N)
     print('For equation size = 5:')
     print(f'{LU_time = }')
     print(f'{inversion_time = }')
