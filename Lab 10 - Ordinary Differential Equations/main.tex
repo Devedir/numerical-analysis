@@ -1,0 +1,189 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{listings} % code highlighting
+\usepackage{xcolor}
+\usepackage{float}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false, 
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+\lstset{ % polish letters in code blocks
+  literate={ą}{{\k a}}1
+  		     {Ą}{{\k A}}1
+           {ż}{{\. z}}1
+           {Ż}{{\. Z}}1
+           {ź}{{\' z}}1
+           {Ź}{{\' Z}}1
+           {ć}{{\' c}}1
+           {Ć}{{\' C}}1
+           {ę}{{\k e}}1
+           {Ę}{{\k E}}1
+           {ó}{{\' o}}1
+           {Ó}{{\' O}}1
+           {ń}{{\' n}}1
+           {Ń}{{\' N}}1
+           {ś}{{\' s}}1
+           {Ś}{{\' S}}1
+           {ł}{{\l}}1
+           {Ł}{{\L}}1
+}
+
+\title{MOwNiT - Laboratorium 10:\\
+Rozwiązywanie równań różniczkowych zwyczajnych}
+\author{Wojciech Dąbek}
+\date{21 maja 2024}
+
+\begin{document}
+
+\maketitle
+
+\section{Treści zadań}
+\begin{enumerate}
+    \item Dane jest równanie różniczkowe (zagadnienie początkowe):
+    \[y' + y \cos x = \sin x \cos x \qquad y(0) = 0\]
+    Znaleźć rozwiązanie metodą Rungego-Kutty i metodą Eulera.\\
+    Porównać otrzymane rozwiązanie z rozwiązaniem dokładnym:
+    \[y(x) = e^{-\sin x} + \sin x - 1\]
+    \item Dane jest zagadnienie brzegowe:
+    \[y'' + y = x \qquad y(0) = 1 \qquad y\left(\frac{\pi}{2}\right) = \frac{\pi}{2} - 1\]
+    Znaleźć rozwiązanie metodą strzałów.\\
+    Porównać otrzymane rozwiązanie z rozwiązaniem dokładnym:
+    \[y(x) = \cos x - \sin x + x\]
+\end{enumerate}
+
+\newpage
+
+\section{Rozwiązania}
+
+\subsection{Zadanie 1 - zagadnienie początkowe}
+
+Metoda Rungego-Kutty opiera się na wzorze rekurencyjnym:
+\[y_{k+1} = y_k + \frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4)\]
+gdzie \(h = y_{k+1} - y_k\) oraz
+\begin{gather*}
+    k_1 = f(x_k, y_k)\\
+    k_2 = f(x_k + \frac{h}{2}, y_k + \frac{h}{2} k_1)\\
+    k_3 = f(x_k + \frac{h}{2}, y_k + \frac{h}{2} k_2)\\
+    k_3 = f(x_k + h, y_k + h k_3)\\
+    f(x, y) = y'
+\end{gather*}
+
+\noindent
+Metoda Eulera opiera się na prostszym wzorze:
+\[y_{k+1} = y_k + h f(x_k, y_k)\]
+
+\noindent
+Obliczenia zrealizowałem następującym kodem w języku Python:
+\begin{lstlisting}[language=Python]
+from math import exp, sin, cos, fabs
+
+
+def exact(x: float) -> float:
+    return exp(-sin(x)) + sin(x) - 1.
+
+def fun(x: float, y: float) -> float:
+    return sin(x) * cos(x) - y * cos(x)
+
+def runge_kutta(x_0, y_0, n, h, f):
+    x = x_0
+    y = y_0
+    for _ in range(n):
+        k1 = f(x, y)
+        k2 = f(x + h/2, y + k1 * h/2)
+        k3 = f(x + h/2, y + k2 * h/2)
+        k4 = f(x + h,   y + k3 * h)
+        y += (k1 + 2*k2 + 2*k3 + k4) * h/6
+        x += h
+    return y
+
+def euler(x_0, y_0, n, h, f):
+    x = x_0
+    y = y_0
+    for _ in range(n):
+        y += h * f(x, y)
+        x += h
+    return y
+
+if __name__ == '__main__':
+    for k in range(1, 6):
+        n = 10**k
+        print(f'For {n = }:')
+        rk_method = runge_kutta(0., 0., n, 1./ n, fun)
+        e_method = euler(0., 0., n, 1. / n, fun)
+        expect = exact(1.)
+        print(f'    Expected value: {expect}')
+        print(f'Runge-Kutta method: {rk_method}', end='\t\t')
+        print(f'Difference: {fabs(rk_method - expect):.5e}')
+        print(f"    Euler's method: {e_method}", end='\t\t')
+        print(f'Difference: {fabs(e_method - expect):.5e}')
+        print()
+\end{lstlisting}
+
+\noindent
+Jako wartość \(h\) przyjąłem \(\frac{1}{n}\), aby \(x_n = 1\). Rezultatem działania tego programu jest:
+
+\begin{verbatim}
+For n = 10:
+    Expected value: 0.27254693545348885
+Runge-Kutta method: 0.2725471473929363    Difference: 2.11939e-07
+    Euler's method: 0.26442725830740726	  Difference: 8.11968e-03
+
+For n = 100:
+    Expected value: 0.27254693545348885
+Runge-Kutta method: 0.2725469354731914    Difference: 1.97026e-11
+    Euler's method: 0.2718062028296542    Difference: 7.40733e-04
+
+For n = 1000:
+    Expected value: 0.27254693545348885
+Runge-Kutta method: 0.27254693545349107	  Difference: 2.22045e-15
+    Euler's method: 0.2724735390106294    Difference: 7.33964e-05
+
+For n = 10000:
+    Expected value: 0.27254693545348885
+Runge-Kutta method: 0.27254693545348246	  Difference: 6.38378e-15
+    Euler's method: 0.27253960254408427	  Difference: 7.33291e-06
+
+For n = 100000:
+    Expected value: 0.27254693545348885
+Runge-Kutta method: 0.27254693545351943	  Difference: 3.05866e-14
+    Euler's method: 0.2725462022298938    Difference: 7.33224e-07
+\end{verbatim}
+
+\vspace{5mm}
+\noindent
+\textbf{Wnioski:} Jak widać, metoda Rungego-Kutty daje wyraźnie większą dokładność od prostszej metody Eulera. Rośnie ona wraz ze wzrostem \(n\) aż do pewnej dużej dokładności (co może wynikać z dokładności reprezentacji zmiennoprzecinkowej liczb). W przypadku metody Eulera przy eksponencjolnym wzroście \(n\) dokładność wyników rośnie liniowo.
+
+\newpage
+
+\subsection{Zadanie 2 - zagadnienie brzegowe}
+
+\section{Bibliografia}
+Prof. M. T. Heath - \textit{Scientific Computing: An Introductory Survey}, ch. 9, 10
+
+\end{document}
