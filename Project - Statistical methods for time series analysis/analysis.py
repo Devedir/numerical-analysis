@@ -36,24 +36,31 @@ def holt_winters_additive(series, alpha, beta, gamma, seasonal_periods, n_foreca
     return forecast
 
 
-# Przykład użycia
 # Reading data from a file with cleaning
 with open('data.txt', 'r') as data_file:
     data = [line.rstrip().split(';') for line in data_file.readlines()]
     for i in range(len(data)):
-        # date = data[i][0].split('-')
-        # data[i][0] = (int(date[0]), int(date[1]))
         data[i][1] = int(data[i][1])
 
 def main():
     series = [val for _, val in data]
     times = [date for date, _ in data]
+
+    # Same dane rzeczywiste:
+    plt.plot(times, series)
+    plt.title('Miesięczne urodzenia w Polsce w latach 2019-2023')
+    plt.xlabel('czas')
+    plt.ylabel('liczba urodzeń')
+    ticks = ['2019-01', '2020-01', '2021-01', '2022-01', '2023-01', '2023-12']
+    plt.xticks(ticks)
+    plt.grid(True)
+    plt.show()
+
+    # Jak model nakłada się na dane rzeczywiste:
     alpha = 0.4
     beta = 0.1
     gamma = 0.3
     seasonal_periods = 12
-
-    # Jak model nakłada się na dane rzeczywiste:
     past = holt_winters_additive(series, alpha, beta, gamma, seasonal_periods, 0)
     plt.plot(times, series, label='Dane rzeczywiste')
     plt.plot(times, past.tolist(), label='Przybliżenie modelem')
